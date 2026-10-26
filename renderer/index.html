@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' sg: data: blob:; media-src 'self' sg: blob:; connect-src 'self' sg:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'">
+  <title>拾光</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="fonts.css">
+</head>
+<body>
+  <div id="app" class="awake">
+
+    <div class="shoot s1" aria-hidden="true"></div>
+    <div class="shoot s2" aria-hidden="true"></div>
+    <div class="bigstars" aria-hidden="true"></div>
+    <div class="progressbar" id="progressbar" aria-hidden="true"></div>
+    <div class="dragstrip" id="dragstrip" aria-hidden="true"></div>
+
+    <header class="titlebar" id="titlebar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span class="name">拾光</span>
+        <span class="sub">PhotoVault</span>
+      </div>
+      <div class="search">
+        <span class="ic s" id="ic-search"></span>
+        <input id="q" type="text" placeholder="搜索名称或日期，如 202610 / 1021" spellcheck="false" autocomplete="off">
+      </div>
+    </header>
+
+    <div class="winbtns">
+      <button id="w-min" class="wbtn" aria-label="最小化" type="button"></button>
+      <button id="w-max" class="wbtn" aria-label="最大化" type="button"></button>
+      <button id="w-close" class="wbtn close" aria-label="关闭" type="button"></button>
+    </div>
+
+    <nav class="rail" id="rail" aria-label="主导航">
+      <button class="on" data-nav="home" data-tip="回忆" type="button"></button>
+      <button data-nav="onthisday" data-tip="那年今日" type="button"></button>
+      <button data-nav="timeline" data-tip="时间线" type="button"></button>
+      <button data-nav="albums" data-tip="相册" type="button"></button>
+      <button data-nav="fav" data-tip="收藏" type="button"></button>
+      <button data-nav="video" data-tip="视频" type="button"></button>
+      <div class="railfoot">
+        <button data-nav="trash" data-tip="回收站" type="button"></button>
+        <button data-nav="settings" data-tip="设置" type="button"></button>
+      </div>
+    </nav>
+
+    <!-- 时间轴：回忆密度地图（年 / 月 / 日 三级） -->
+    <div class="tlreadout" id="tlreadout" hidden>
+      <span class="tl-big" id="tl-big">—</span>
+      <span class="tl-sub" id="tl-sub"></span>
+      <div class="tlprev" id="tlprev" hidden></div>
+      <button class="btn gold" id="tl-go" type="button" hidden>跳到这里<span class="ic" id="ic-tl-go"></span></button>
+    </div>
+    <div class="tlpanel" id="tlpanel" hidden aria-label="时间轴">
+      <canvas class="tlcanvas" id="tlcanvas"></canvas>
+      <div class="tlviewport" id="tlviewport" hidden aria-hidden="true"></div>
+      <div class="tlcenter" aria-hidden="true"></div>
+      <p class="tlhint">拖动 = 读数 · 松手 = 跳转 · 滚轮 = 年月日缩放 · ← → 微调 · T 收起</p>
+    </div>
+
+    <div class="scroll" id="scroll">
+      <main class="main">
+
+        <section class="hero" id="hero" hidden>
+          <div class="heroimg" id="hero-img"></div>
+          <div class="heroscrim" aria-hidden="true"></div>
+          <span class="herobadge" id="hero-badge"></span>
+          <div class="herotext">
+            <p class="kicker" id="hero-kicker"></p>
+            <h2 class="herotitle" id="hero-title"></h2>
+            <p class="heroquote" id="hero-sub"></p>
+            <div class="herobtns">
+              <button class="btn gold" id="hero-btn" type="button">重温这一天<span class="ic" id="ic-hero-go"></span></button>
+              <button class="btn glass" id="hero-shuffle" type="button"><span class="ic" id="ic-hero-shuffle"></span>随便看看</button>
+            </div>
+          </div>
+          <div class="heroyears" id="hero-years" hidden></div>
+        </section>
+
+        <div class="empty" id="empty" hidden>
+          <div class="empty-star" aria-hidden="true">✦</div>
+          <h2>还没有回忆在这里</h2>
+          <p id="empty-lib">把照片放进照片库文件夹，拾光会把它们整理成一条时光长廊。</p>
+          <div class="empty-btns">
+            <button class="btn gold" id="empty-open" type="button"><span class="ic" id="ic-empty-folder"></span>打开照片库文件夹</button>
+            <button class="btn glass" id="empty-scan" type="button"><span class="ic" id="ic-empty-refresh"></span>立即扫描</button>
+          </div>
+        </div>
+
+        <div class="greet" id="greet">
+          <h3 id="greet-h"></h3>
+          <p id="greet-p"></p>
+        </div>
+
+        <div class="offline" id="offline" hidden role="status">
+          <span class="oicon"><span class="ic" id="ic-offline"></span></span>
+          <div class="otxt">
+            <strong>照片库暂时打不开</strong>
+            <p id="offline-path"></p>
+          </div>
+          <div class="obtns">
+            <button class="btn glass" id="offline-retry" type="button">重试</button>
+            <button class="btn gold" id="offline-pick" type="button">换个文件夹</button>
+          </div>
+        </div>
+
+        <div class="chips" id="chips">
+          <button class="on" data-chip="all" type="button">全部</button>
+          <button data-chip="fav" type="button">收藏</button>
+          <button data-chip="video" type="button">视频</button>
+          <span class="chipsort"><span class="ic" id="ic-clock"></span>按时间 · 新 → 旧</span>
+        </div>
+
+        <div class="timeline" id="timeline"></div>
+        <div class="sentinel" id="sentinel" aria-hidden="true"></div>
+        <p class="more" id="more" hidden></p>
+      </main>
+    </div>
+
+    <!-- 大图查看器 -->
+    <div class="viewer" id="viewer" hidden>
+      <div class="vscrim" id="vscrim"></div>
+      <button class="vnav prev" id="v-prev" type="button" aria-label="上一张"></button>
+      <button class="vnav next" id="v-next" type="button" aria-label="下一张"></button>
+      <button class="vclose" id="v-close" type="button" aria-label="关闭"></button>
+      <div class="vwrap">
+        <div class="vstage" id="v-stage">
+          <div class="vmedia" id="v-media"></div>
+          <div class="cropbox" id="cropbox">
+            <i class="ch nw" data-h="nw"></i><i class="ch n" data-h="n"></i><i class="ch ne" data-h="ne"></i>
+            <i class="ch w" data-h="w"></i><i class="ch e" data-h="e"></i>
+            <i class="ch sw" data-h="sw"></i><i class="ch s" data-h="s"></i><i class="ch se" data-h="se"></i>
+          </div>
+          <div class="vloader" id="v-loader">正在打开…</div>
+        </div>
+        <div class="vbar">
+          <div class="vinfo">
+            <strong id="v-cap"></strong>
+            <span id="v-meta"></span>
+          </div>
+          <div class="vzoom">
+            <button id="v-zoomout" type="button" aria-label="缩小" data-tip="缩小"></button>
+            <span id="v-zoomval">100%</span>
+            <button id="v-zoomin" type="button" aria-label="放大" data-tip="放大"></button>
+            <button id="v-zoomfit" type="button" aria-label="适应窗口" data-tip="适应窗口"></button>
+          </div>
+          <div class="vacts">
+            <button id="v-slideshow" type="button" aria-label="幻灯片播放" data-tip="幻灯片播放（S）"></button>
+            <button id="v-fav" type="button" aria-label="收藏" data-tip="收藏"></button>
+            <button id="v-star" type="button" aria-label="评星" data-tip="评星 1-5 星"></button>
+            <button id="v-edit" type="button" aria-label="编辑" data-tip="编辑（旋转/裁剪/调色）"></button>
+            <button id="v-album" type="button" aria-label="加入相册" data-tip="加入相册"></button>
+            <button id="v-info" type="button" aria-label="详细信息" data-tip="详细信息"></button>
+            <button id="v-folder" type="button" aria-label="在文件夹中显示" data-tip="打开所在位置"></button>
+            <button id="v-trash" type="button" aria-label="移入回收站" data-tip="移入回收站"></button>
+          </div>
+        </div>
+        <div class="vstar" id="vstar" hidden>
+          <button data-n="1" type="button" aria-label="1星"></button>
+          <button data-n="2" type="button" aria-label="2星"></button>
+          <button data-n="3" type="button" aria-label="3星"></button>
+          <button data-n="4" type="button" aria-label="4星"></button>
+          <button data-n="5" type="button" aria-label="5星"></button>
+          <button data-n="0" type="button" aria-label="清除评星">清除</button>
+        </div>
+        <div class="editbar" id="editbar" hidden>
+          <div class="ebtns">
+            <button id="e-rotl" type="button" data-tip="左转 90°"><span class="ic"></span></button>
+            <button id="e-rotr" type="button" data-tip="右转 90°"><span class="ic"></span></button>
+            <button id="e-crop" type="button" data-tip="裁剪"><span class="ic"></span></button>
+          </div>
+          <label class="eslider">亮度<input id="e-bri" type="range" min="0.5" max="1.6" step="0.05" value="1"></label>
+          <label class="eslider">对比<input id="e-con" type="range" min="0.5" max="1.6" step="0.05" value="1"></label>
+          <label class="eslider">饱和<input id="e-sat" type="range" min="0" max="2" step="0.05" value="1"></label>
+          <div class="ebtns">
+            <button id="e-reset" type="button" data-tip="还原预览"><span class="ic"></span></button>
+            <button id="e-cancel" type="button" class="txt">退出编辑</button>
+            <button id="e-save" type="button" class="gold txt">保存</button>
+          </div>
+        </div>
+        <p class="vhint" id="vhint">← → 切换 · 滚轮缩放 · 空格 播放/暂停 · S 幻灯片 · 0 适应 · i 详情 · F 收藏 · Delete 删除 · Esc 关闭</p>
+      </div>
+
+      <!-- 详细信息面板 -->
+      <aside class="infopanel" id="infopanel" aria-label="详细信息">
+        <div class="ip-head">
+          <h4>详细信息</h4>
+          <button class="mclose" id="ip-close" type="button" aria-label="关闭详情"></button>
+        </div>
+        <div class="ip-body" id="ip-body"></div>
+      </aside>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div class="modal" id="confirm" hidden>
+      <div class="mcard small">
+        <h3 id="confirm-title">确认</h3>
+        <p id="confirm-text"></p>
+        <div class="mbtns">
+          <button class="btn glass" id="confirm-no" type="button">取消</button>
+          <button class="btn gold" id="confirm-yes" type="button">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 输入对话框（Electron 不支持 window.prompt） -->
+    <div class="modal" id="inputdlg" hidden>
+      <div class="mcard small">
+        <h3 id="input-title">输入</h3>
+        <input id="input-field" type="text" maxlength="40" spellcheck="false">
+        <div class="mbtns">
+          <button class="btn glass" id="input-cancel" type="button">取消</button>
+          <button class="btn gold" id="input-ok" type="button">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div class="modal" id="settings" hidden>
+      <div class="mcard">
+        <div class="mhead">
+          <h3><span class="ic" id="ic-set-gear"></span>设置</h3>
+          <button class="mclose" id="set-close" type="button" aria-label="关闭"></button>
+        </div>
+        <div class="mrow">
+          <div class="mlabel">照片库位置</div>
+          <div class="mvalue" id="set-lib"></div>
+          <div class="mrowbtns">
+            <button class="btn glass" id="set-pick" type="button"><span class="ic" id="ic-set-folder"></span>选择文件夹</button>
+            <button class="btn glass" id="set-openlib" type="button"><span class="ic" id="ic-set-open"></span>打开</button>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mlabel">沉浸模式</div>
+          <div class="mvalue">静止后自动隐藏界面，只留照片与星空</div>
+          <div class="mrowbtns immersive">
+            <label class="switch"><input type="checkbox" id="set-immersive"><i></i>自动隐藏界面</label>
+            <label class="idler">静止
+              <select id="set-idle">
+                <option value="1500">1.5 秒</option>
+                <option value="2600">2.6 秒</option>
+                <option value="5000">5 秒</option>
+                <option value="10000">10 秒</option>
+              </select>后隐藏
+            </label>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mlabel">时间轴</div>
+          <div class="mvalue">打开软件时自动展开；拖动时读出时间点，松手直接跳过去</div>
+          <div class="mrowbtns">
+            <label class="switch"><input type="checkbox" id="set-tlopen"><i></i>启动时显示</label>
+            <label class="switch"><input type="checkbox" id="set-tlauto"><i></i>松手即跳</label>
+            <label class="switch"><input type="checkbox" id="set-ssmusic"><i></i>背景音乐</label>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mlabel">索引</div>
+          <div class="mvalue" id="set-stats"></div>
+          <div class="mrowbtns">
+            <button class="btn glass" id="set-rescan" type="button"><span class="ic" id="ic-set-refresh"></span>重新扫描</button>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mlabel">数据</div>
+          <div class="mvalue">缩略图、索引与回收站都保存在本地</div>
+          <div class="mrowbtns">
+            <button class="btn glass" id="set-data" type="button"><span class="ic" id="ic-set-hd"></span>打开数据文件夹</button>
+            <button class="btn glass" id="set-tour" type="button">功能引导</button>
+          </div>
+        </div>
+        <p class="about">拾光 v<span id="set-ver"></span> · 你的照片永远只存在你自己的电脑里</p>
+      </div>
+    </div>
+
+    <!-- 相册管理 -->
+    <div class="modal" id="albums" hidden>
+      <div class="mcard">
+        <div class="mhead">
+          <h3><span class="ic" id="ic-alb-disc"></span>相册</h3>
+          <button class="mclose" id="alb-close" type="button" aria-label="关闭"></button>
+        </div>
+        <div class="newalb">
+          <input id="alb-name" type="text" placeholder="新相册名称，如：2024 春节" maxlength="24">
+          <button class="btn gold" id="alb-new" type="button">创建</button>
+        </div>
+        <div class="alblist" id="alb-list"></div>
+      </div>
+    </div>
+
+    <!-- 加入相册（从查看器） -->
+    <div class="modal" id="albumpick" hidden>
+      <div class="mcard small">
+        <div class="mhead">
+          <h3>加入相册</h3>
+          <button class="mclose" id="pick-close" type="button" aria-label="关闭"></button>
+        </div>
+        <div class="alblist" id="pick-list"></div>
+      </div>
+    </div>
+
+    <!-- 回收站 -->
+    <div class="modal" id="trash" hidden>
+      <div class="mcard">
+        <div class="mhead">
+          <h3><span class="ic" id="ic-trash-bin"></span>回收站</h3>
+          <button class="mclose" id="trash-close" type="button" aria-label="关闭"></button>
+        </div>
+        <div class="trashlist" id="trash-list"></div>
+        <div class="mbtns">
+          <button class="btn glass" id="trash-empty" type="button">清空回收站（永久删除）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 幻灯片放映（全屏 + 交叉淡入淡出，底部时间轴跟着走） -->
+    <div class="slideshow" id="slideshow" hidden aria-label="幻灯片">
+      <div class="ss-layer" id="ss-a"></div>
+      <div class="ss-layer" id="ss-b"></div>
+      <div class="ss-vignette" aria-hidden="true"></div>
+      <div class="ss-cap">
+        <strong id="ss-date"></strong>
+        <span id="ss-sub"></span>
+      </div>
+      <div class="ss-pause" id="ss-pause" hidden>❚❚</div>
+      <div class="ss-music" id="ss-music" hidden><span class="ss-note" aria-hidden="true">♪</span><span id="ss-music-name"></span></div>
+      <p class="ss-hint" id="ss-hint">Esc 退出 · 空格 暂停 · M 音乐 · ← → 上/下一张 · 全屏播放中</p>
+    </div>
+
+    <!-- 首次使用引导 -->
+    <div class="tour" id="tour" hidden aria-label="使用引导">
+      <div class="tour-card">
+        <button class="tour-close" id="tour-close" type="button" aria-label="跳过引导">✕ 跳过</button>
+        <div class="tour-step" id="tour-step"></div>
+        <div class="tour-foot">
+          <div class="tour-dots" id="tour-dots"></div>
+          <div class="tour-nav">
+            <button class="tour-btn ghost" id="tour-prev" type="button">上一步</button>
+            <button class="tour-btn gold" id="tour-next" type="button">下一步</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+    <div class="hint" id="hint" aria-hidden="true">✦ 界面已隐去 · 移动鼠标唤回</div>
+  </div>
+
+  <script src="icons.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
