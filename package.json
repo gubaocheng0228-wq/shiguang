@@ -1,0 +1,27 @@
+{
+  "name": "shiguang",
+  "productName": "拾光",
+  "version": "1.0.0",
+  "description": "拾光 · 本地照片回忆库（桌面版）",
+  "main": "main.js",
+  "author": "shiguang",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --smoke",
+    "test": "node scripts/selftest.js",
+    "icon": "node scripts/make-icon.js",
+    "sample": "node scripts/make-samples.js",
+    "build": "node scripts/build-portable.js"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "exif-reader": "^2.0.1",
+    "heic-decode": "^2.1.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "lucide-static": "^1.61.0"
+  }
+}

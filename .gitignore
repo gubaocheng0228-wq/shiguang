@@ -1,0 +1,20 @@
+# ── 依赖 ──
+node_modules/
+
+# ── 运行时二进制（首次构建请自行放置 ffmpeg，见 README）──
+bin/
+
+# ── 本地测试产物 ──
+data-smoke/
+data/
+
+# ── 备份与临时文件 ──
+*.bak
+*.sg-tmp
+*.sg-bak
+*.log
+
+# ── 系统文件 ──
+.DS_Store
+Thumbs.db
+desktop.ini
