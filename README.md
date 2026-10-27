@@ -181,3 +181,11 @@ node shiguang-mobile/scripts/verify-update.js     # 应输出 PASS
 [MIT](LICENSE) © 2026
 
 第三方组件许可见 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)。
+
+---
+
+<sub>
+
+**关于本页文案**：这份 README 的说明文字（功能介绍、章节结构、措辞）由 **AI 协助生成**，作者人工校对后发布。代码、截图与安装包来自项目本身；如有个别表述与实际行为不符，以代码和界面为准。
+
+</sub>
