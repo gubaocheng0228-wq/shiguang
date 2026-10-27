@@ -33,8 +33,11 @@ import java.util.concurrent.Executors;
  */
 class UpdateManager {
 
-    /** 更新清单地址（换成自己的域名时只改这里，发布脚本里的 BASE 也要同步改） */
-    static final String MANIFEST_URL = "http://your-server.example/shiguang/latest.json";
+    /**
+     * 更新清单地址：来自 local.properties 的 sg.updateUrl（不进仓库），由 Gradle 编成常量。
+     * 注意它最终会出现在 APK 里，属于公开信息 —— 服务器安全靠 APK 签名 + 清单 RSA 签名，不靠隐藏地址。
+     */
+    static final String MANIFEST_URL = BuildConfig.UPDATE_URL;
 
     private final Activity act;
     private final ExecutorService pool = Executors.newSingleThreadExecutor();

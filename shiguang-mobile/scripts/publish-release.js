@@ -18,12 +18,26 @@ const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 const KEY = path.join(ROOT, 'keystore', 'update-key.pem');
 
-// 服务器信息（换成自己的域名时同步改这里 + UpdateManager.MANIFEST_URL）
-const HOST = 'root@your-server.example';
-const PORT = '22';
-const REMOTE_DIR = '/www/wwwroot/your-server.example/shiguang';
-const BASE_URL = 'http://your-server.example/shiguang';
-const SSH_KEY = path.join(process.env.USERPROFILE || process.env.HOME || '', '.ssh', 'shiguang_deploy');
+// 服务器信息来自 local.properties（不进仓库）或环境变量，见 docs/OTA.md
+function readLocalProps() {
+  const out = {};
+  const p = path.join(ROOT, 'local.properties');
+  if (!fs.existsSync(p)) return out;
+  for (const line of fs.readFileSync(p, 'utf8').split(/\r?\n/)) {
+    const s = line.trim();
+    if (!s || s.startsWith('#')) continue;
+    const i = s.indexOf('=');
+    if (i > 0) out[s.slice(0, i).trim()] = s.slice(i + 1).trim();
+  }
+  return out;
+}
+const LP = readLocalProps();
+const HOST = process.env.SG_HOST || LP['sg.host'];
+const PORT = process.env.SG_SSH_PORT || LP['sg.sshPort'] || '22';
+const REMOTE_DIR = process.env.SG_REMOTE_DIR || LP['sg.remoteDir'];
+const BASE_URL = process.env.SG_BASE_URL || LP['sg.baseUrl'];
+const SSH_KEY = process.env.SG_SSH_KEY || LP['sg.sshKey'] ||
+  path.join(process.env.USERPROFILE || process.env.HOME || '', '.ssh', 'shiguang_deploy');
 
 function arg(name, def) {
   const i = process.argv.indexOf('--' + name);
@@ -39,6 +53,10 @@ const code = Number(arg('code'));
 const notes = arg('notes', '');
 const apkPath = arg('apk', path.join(ROOT, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'));
 
+if (!HOST || !REMOTE_DIR || !BASE_URL) {
+  console.error('缺少服务器配置：请在 local.properties 里填 sg.host / sg.remoteDir / sg.baseUrl（见 docs/OTA.md）');
+  process.exit(1);
+}
 if (!ver || !code) {
   console.error('用法: node scripts/publish-release.js --ver 1.0.2 --code 3 --notes "更新说明" [--upload]');
   process.exit(1);

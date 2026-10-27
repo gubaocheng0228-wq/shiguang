@@ -8,7 +8,23 @@ const path = require('path');
 const https = require('http');
 
 const ROOT = path.join(__dirname, '..');
-const MANIFEST = 'http://your-server.example/shiguang/latest.json';
+
+function readLocalProp(key) {
+  const p = path.join(ROOT, 'local.properties');
+  if (!fs.existsSync(p)) return null;
+  for (const line of fs.readFileSync(p, 'utf8').split(/\r?\n/)) {
+    const s = line.trim();
+    if (!s || s.startsWith('#')) continue;
+    const i = s.indexOf('=');
+    if (i > 0 && s.slice(0, i).trim() === key) return s.slice(i + 1).trim();
+  }
+  return null;
+}
+const MANIFEST = process.env.SG_UPDATE_URL || readLocalProp('sg.updateUrl');
+if (!MANIFEST) {
+  console.error('缺少更新地址：请在 local.properties 填 sg.updateUrl，或设置环境变量 SG_UPDATE_URL');
+  process.exit(1);
+}
 
 function get(url, outFile, retried) {
   return new Promise((resolve, reject) => {

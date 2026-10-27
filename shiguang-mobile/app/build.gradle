@@ -2,9 +2,21 @@ plugins {
     id 'com.android.application'
 }
 
+// 服务器地址不进仓库：从 local.properties 读（该文件已被 .gitignore 忽略）
+def sgProps = new Properties()
+def sgPropsFile = rootProject.file('local.properties')
+if (sgPropsFile.exists()) {
+    sgPropsFile.withInputStream { sgProps.load(it) }
+}
+def sgUpdateUrl = sgProps.getProperty('sg.updateUrl', 'https://example.invalid/shiguang/latest.json')
+
 android {
     namespace 'com.shiguang.app'
     compileSdk 34
+
+    buildFeatures {
+        buildConfig true
+    }
 
     defaultConfig {
         applicationId 'com.shiguang.app'
@@ -12,6 +24,9 @@ android {
         targetSdk 34
         versionCode 3
         versionName '1.0.2'
+
+        // 更新清单地址：编成常量，源码里不出现真实服务器
+        buildConfigField 'String', 'UPDATE_URL', '"' + sgUpdateUrl + '"'
     }
 
     signingConfigs {
