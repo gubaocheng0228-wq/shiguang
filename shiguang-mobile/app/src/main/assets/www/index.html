@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0c12">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'">
+<title>拾光</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="pages.css">
+</head>
+<body>
+
+<div class="stars" aria-hidden="true"></div>
+<div class="stars b" aria-hidden="true"></div>
+
+<!-- 启动 -->
+<div class="splash" id="splash">
+  <div class="sp-logo">✦</div>
+  <div class="sp-name">拾光</div>
+  <div class="sp-sub">把手机里的照片，变成一条时光长廊</div>
+</div>
+
+<!-- 授权 / 空库 -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-inner">
+    <div class="gate-logo">✦</div>
+    <h1 class="gate-title" id="gate-title">先看一眼你的相册</h1>
+    <p class="gate-text" id="gate-text">拾光只读取这台手机里的照片和视频，不联网、不上传，图片始终留在你自己的手机里。</p>
+    <div class="gate-stats" id="gate-stats" hidden></div>
+    <button class="btn gold wide" id="gate-allow" type="button">允许访问相册</button>
+    <button class="btn ghost wide" id="gate-settings" type="button" hidden>去系统设置里打开权限</button>
+    <button class="btn ghost wide" id="gate-later" type="button">先看看界面</button>
+    <p class="gate-foot">拾光 v<span id="gate-ver">1.0</span> · 纯本地 · 无网络权限请求</p>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div class="shell" id="shell" hidden>
+
+  <header class="bar" id="bar">
+    <div class="bar-left">
+      <span class="wordmark" id="bar-title">拾光</span>
+      <span class="bar-sub" id="bar-sub"></span>
+    </div>
+    <div class="bar-right">
+      <button class="ibtn" id="btn-search" type="button" aria-label="搜索"><span class="ic i-search"></span></button>
+      <button class="ibtn" id="btn-more" type="button" aria-label="更多"><span class="ic i-more"></span></button>
+    </div>
+  </header>
+
+  <div class="chips" id="chips" hidden>
+    <button class="chip on" data-f="all" type="button">全部</button>
+    <button class="chip" data-f="image" type="button">照片</button>
+    <button class="chip" data-f="video" type="button">视频</button>
+    <button class="chip" data-f="fav" type="button">收藏</button>
+  </div>
+
+  <main class="pages" id="pages">
+
+    <!-- 回忆 -->
+    <section class="page" data-page="home" id="page-home">
+      <div class="hero" id="hero">
+        <div class="hero-img" id="hero-img"></div>
+        <div class="hero-scrim"></div>
+        <div class="hero-body">
+          <p class="hero-kicker" id="hero-kicker">那年今日</p>
+          <h2 class="hero-date" id="hero-date">—</h2>
+          <p class="hero-sub" id="hero-sub"></p>
+          <div class="hero-acts">
+            <button class="playbtn" id="hero-play" type="button" aria-label="放映"><span class="ic i-play"></span></button>
+            <button class="btn glass" id="hero-review" type="button">重温这一天</button>
+            <button class="btn glass" id="hero-shuffle" type="button">随便看看</button>
+          </div>
+        </div>
+        <div class="hero-thumbs" id="hero-thumbs"></div>
+      </div>
+
+      <div class="crumbs" id="home-stats"></div>
+
+      <div class="sec-head"><h3>这一年</h3><span class="sec-hint" id="years-hint"></span></div>
+      <div class="yearrow" id="yearrow"></div>
+
+      <div class="sec-head"><h3>最近</h3><button class="linkbtn" id="recent-all" type="button">全部 <span class="ic i-right"></span></button></div>
+      <div class="grid" id="recent-grid"></div>
+
+      <p class="tail">— 拾光 · 全部回忆都在你自己的手机里 —</p>
+    </section>
+
+    <!-- 时间线 -->
+    <section class="page" data-page="timeline" id="page-timeline" hidden>
+      <div class="tl-wrap" id="tl-wrap">
+        <div class="tl-scroll" id="tl-scroll">
+          <div class="tl-sizer" id="tl-sizer"></div>
+          <div class="tl-blocks" id="tl-blocks"></div>
+          <div class="tl-end" id="tl-end">— 到这里就是最早的一张了 —</div>
+        </div>
+        <div class="tl-rail" id="tl-rail">
+          <canvas id="tl-canvas"></canvas>
+          <div class="tl-bubble" id="tl-bubble"></div>
+        </div>
+        <div class="tl-empty" id="tl-empty" hidden>
+          <p>没有符合条件的回忆</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 收藏 -->
+    <section class="page" data-page="fav" id="page-fav" hidden>
+      <div class="fav-head">
+        <h2>收藏</h2>
+        <p id="fav-sub">还没有标心的照片</p>
+      </div>
+      <div class="grid" id="fav-grid"></div>
+      <div class="empty" id="fav-empty" hidden>
+        <div class="empty-icon">♡</div>
+        <p>在大图里点一下心形，就会收进这里</p>
+      </div>
+    </section>
+
+    <!-- 我的 -->
+    <section class="page" data-page="me" id="page-me" hidden>
+      <div class="me-head">
+        <div class="me-logo">✦</div>
+        <div>
+          <h2>拾光</h2>
+          <p id="me-line">—</p>
+        </div>
+      </div>
+
+      <div class="list" id="me-list">
+        <div class="li" id="li-perm">
+          <span class="li-t">相册权限</span>
+          <span class="li-v" id="perm-state">—</span>
+        </div>
+        <div class="li" id="li-update">
+          <span class="li-t">检查更新</span>
+          <span class="li-v"><span id="update-state">—</span><span class="ic i-right"></span></span>
+        </div>
+        <div class="li" id="li-rescan">
+          <span class="li-t">重新扫描相册</span>
+          <span class="li-v"><span class="ic i-refresh"></span></span>
+        </div>
+        <div class="li" id="li-music">
+          <div class="li-col">
+            <span class="li-t">放映背景音乐</span>
+            <span class="li-d" id="music-names">—</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="sw-music"><i></i></label>
+        </div>
+        <div class="li col" id="li-speed">
+          <span class="li-t">每张停留</span>
+          <div class="seg" id="seg-speed">
+            <button data-v="4000" type="button">4 秒</button>
+            <button data-v="6000" type="button">6 秒</button>
+            <button data-v="8000" type="button">8 秒</button>
+            <button data-v="12000" type="button">12 秒</button>
+          </div>
+        </div>
+        <div class="li" id="li-zoom">
+          <div class="li-col">
+            <span class="li-t">缓慢推近</span>
+            <span class="li-d">让静止的照片轻轻呼吸</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="sw-zoom"><i></i></label>
+        </div>
+        <div class="li" id="li-hidden">
+          <span class="li-t">已隐藏</span>
+          <span class="li-v"><span id="hidden-n">0</span> 张 <span class="ic i-right"></span></span>
+        </div>
+        <div class="li" id="li-tour">
+          <span class="li-t">重看功能引导</span>
+          <span class="li-v"><span class="ic i-right"></span></span>
+        </div>
+      </div>
+
+      <div class="about">
+        <p class="about-t">拾光 · 手机版 <span id="me-ver">1.0.0</span></p>
+        <p class="about-d">照片和视频从来没有离开过这台手机。没有账号、没有云端、没有上传。<br>电脑版「拾光」和它是一对：同一个界面，各自守着自己的照片。</p>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="dock" id="dock">
+    <button class="dock-btn on" data-nav="home" type="button"><span class="ic i-home"></span><span>回忆</span></button>
+    <button class="dock-btn" data-nav="timeline" type="button"><span class="ic i-cal"></span><span>时间线</span></button>
+    <button class="dock-play" id="dock-play" type="button" aria-label="放映"><span class="ic i-play"></span></button>
+    <button class="dock-btn" data-nav="fav" type="button"><span class="ic i-heart"></span><span>收藏</span></button>
+    <button class="dock-btn" data-nav="me" type="button"><span class="ic i-gear"></span><span>我的</span></button>
+  </nav>
+</div>
+
+<!-- 大图 -->
+<div class="viewer" id="viewer" hidden>
+  <div class="v-stage" id="v-stage">
+    <div class="v-item" id="v-item"></div>
+    <div class="v-load" id="v-load">正在打开…</div>
+  </div>
+  <div class="v-chrome top" id="v-top">
+    <button class="vbtn" id="v-close" type="button" aria-label="关闭"><span class="ic i-left"></span></button>
+    <div class="v-title" id="v-title"></div>
+    <button class="vbtn" id="v-more" type="button" aria-label="更多"><span class="ic i-more"></span></button>
+  </div>
+  <div class="v-chrome bottom" id="v-bottom">
+    <div class="v-meta">
+      <strong id="v-when">—</strong>
+      <span id="v-desc"></span>
+    </div>
+    <div class="v-acts">
+      <button class="vact" id="v-fav" type="button"><span class="ic i-heart"></span><i>收藏</i></button>
+      <button class="vact" id="v-share" type="button"><span class="ic i-share"></span><i>分享</i></button>
+      <button class="vact" id="v-info" type="button"><span class="ic i-info"></span><i>信息</i></button>
+      <button class="vact" id="v-hide" type="button"><span class="ic i-eyeoff"></span><i>隐藏</i></button>
+    </div>
+  </div>
+  <div class="v-count" id="v-count"></div>
+</div>
+
+<!-- 幻灯片 -->
+<div class="show" id="show" hidden>
+  <div class="s-layer" id="s-a"><div class="s-bg"></div><div class="s-fg"></div></div>
+  <div class="s-layer" id="s-b"><div class="s-bg"></div><div class="s-fg"></div></div>
+  <div class="s-vig" aria-hidden="true"></div>
+  <div class="s-cap" id="s-cap">
+    <strong id="s-date"></strong>
+    <span id="s-sub"></span>
+  </div>
+  <div class="s-top">
+    <div class="s-music" id="s-music" hidden><span>♪</span><b id="s-music-name"></b></div>
+    <button class="vbtn" id="s-close" type="button" aria-label="退出放映"><span class="ic i-x"></span></button>
+  </div>
+  <div class="s-pause" id="s-pause" hidden>❚❚</div>
+  <div class="s-bar" id="s-bar">
+    <div class="s-prog"><i id="s-prog"></i></div>
+    <div class="s-months" id="s-months"></div>
+  </div>
+</div>
+
+<!-- 底部面板 -->
+<div class="sheet-bg" id="sheet-bg" hidden></div>
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-grab"></div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+
+<!-- 引导 -->
+<div class="tour" id="tour" hidden>
+  <div class="tour-inner">
+    <button class="tour-skip" id="tour-skip" type="button">跳过</button>
+    <div class="tour-art" id="tour-art">✦</div>
+    <h2 class="tour-h" id="tour-h"></h2>
+    <p class="tour-p" id="tour-p"></p>
+    <div class="tour-dots" id="tour-dots"></div>
+    <button class="btn gold wide" id="tour-next" type="button">下一步</button>
+    <button class="btn ghost wide" id="tour-allow" type="button" hidden>允许访问相册</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="icons.js"></script>
+<script src="native.js"></script>
+<script src="app.js"></script>
+<script src="home.js"></script>
+<script src="timeline.js"></script>
+<script src="viewer.js"></script>
+<script src="slideshow.js"></script>
+</body>
+</html>

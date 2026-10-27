@@ -1,0 +1,18 @@
+# 构建产物
+app/build/
+build/
+.gradle/
+local.properties
+dist/
+*.log
+
+# 密钥（自己生成，不要提交）
+keystore/*.jks
+keystore/*.pem
+
+# 预览输出
+dev/out/
+
+# 放映音乐：体积较大且与桌面版 music/ 重复，请自行放入
+app/src/main/assets/music/*.m4a
+app/src/main/assets/music/*.mp3

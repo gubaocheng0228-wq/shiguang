@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.shiguang.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.shiguang.app'
+        minSdk 24
+        targetSdk 34
+        versionCode 3
+        versionName '1.0.2'
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../keystore/shiguang.jks')
+            storePassword 'shiguang2026'
+            keyAlias 'shiguang'
+            keyPassword 'shiguang2026'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            applicationIdSuffix ''
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    aaptOptions {
+        noCompress 'm4a', 'mp3', 'woff2'
+    }
+}
